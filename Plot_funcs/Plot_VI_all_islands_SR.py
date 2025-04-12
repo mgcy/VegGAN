@@ -1,0 +1,86 @@
+import numpy as np
+import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
+import cartopy.feature as cf
+import gc
+import matplotlib.ticker as mticker
+
+workpath = '/net/airs1/storage/people/mgcy/Projects/VIIRS_Super_Resolution/'
+
+
+data = np.load('tmp.npy') * 1.5
+# plot_function(vi)
+
+abox = [-160.3, 18.85, -154.7, 22.35]
+states_provinces = cf.NaturalEarthFeature(
+category='cultural',
+name='admin_1_states_provinces_lines',
+scale='50m',
+facecolor='none')
+
+fig = plt.figure(figsize=[14, 5])
+ax1 = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
+
+lon = np.linspace(start=abox[0], stop=abox[2], num=data.shape[1])
+lat = np.linspace(start=abox[1], stop=abox[3], num=data.shape[0])
+lon, lat = np.meshgrid(lon, lat)
+
+ax1.set_title("(b) SR EVI2")
+
+ax1.add_feature(states_provinces, edgecolor='black', linewidth=2.5, zorder=3)
+ax1.add_feature(cf.LAND)
+# ax1.add_feature(cf.OCEAN, zorder=3)
+ax1.add_feature(cf.COASTLINE, linewidth=2.5)
+ax1.add_feature(cf.BORDERS, linestyle=':')
+print('save')
+cm = ax1.imshow(data, extent=(-160.3, -154.7, 18.85, 22.35), cmap='RdYlGn', transform=ccrs.PlateCarree(), vmax=1, vmin=-1, rasterized=True)
+print('save111')
+
+gls = ax1.gridlines(draw_labels=False, crs=ccrs.PlateCarree(), linestyle='--', zorder=4, color='black')
+
+ax1.coastlines()
+
+x = np.round(np.linspace(lon.min(), lon.max(), 5), 2)
+y = np.round(np.linspace(lat.min(), lat.max(), 4), 2)
+
+gls.xlocator = mticker.FixedLocator(x)
+gls.ylocator = mticker.FixedLocator(y)
+
+area1 = [-159.5, -159.42, 22.1, 22.16]
+area2 = [-158,  -157.92, 21.5, 21.56]
+area3 = [-156.95, -156.87,  21.1,  21.16]
+area4 = [-155.58, -155.5, 19.96, 20.02]
+
+ax1.plot([area1[1], area1[1], area1[0], area1[0], area1[1]], [area1[2], area1[3], area1[3], area1[2], area1[2]],
+         color='blue', linewidth=2,
+         transform=ccrs.PlateCarree())
+
+ax1.plot([area2[1], area2[1], area2[0], area2[0], area2[1]], [area2[2], area2[3], area2[3], area2[2], area2[2]],
+         color='green', linewidth=2,
+         transform=ccrs.PlateCarree())
+
+ax1.plot([area3[1], area3[1], area3[0], area3[0], area3[1]], [area3[2], area3[3], area3[3], area3[2], area3[2]],
+         color='orange', linewidth=2,
+         transform=ccrs.PlateCarree())
+
+ax1.plot([area4[1], area4[1], area4[0], area4[0], area4[1]], [area4[2], area4[3], area4[3], area4[2], area4[2]],
+         color='red', linewidth=2,
+         transform=ccrs.PlateCarree())
+
+
+ax1.set_xticks(x)
+ax1.set_yticks(y)
+ax1.set_xlim(lon.min(), lon.max())
+ax1.set_ylim(lat.min(), lat.max())
+ax1.set_xlabel('Longitude')
+ax1.set_ylabel('Latitude')
+cb = fig.colorbar(cm, aspect=35, pad=0.01)
+cb.set_label('EVI2', fontsize=14)
+
+del data
+gc.collect()
+print('save')
+# plt.savefig(workpath + '/Plots/MVC/'  + fdate + '.' + ftype + ".png", format='png',
+#         bbox_inches='tight', facecolor=(1, 1, 1, 0))
+plt.savefig(workpath + '/Plots/All_Islands/SR.EVI2.All.Islands.png', bbox_inches='tight', facecolor=(1, 1, 1, 0))
+plt.close()
